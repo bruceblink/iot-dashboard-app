@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
-interface SensorData {
+export interface SensorData {
     timestamp: string;
     temperature: number;
     humidity: number;
 }
 
-interface ChartData {
+export interface ChartData {
     timestamps: string[];
     temperature: number[];
     humidity: number[];
@@ -16,8 +16,13 @@ interface ChartData {
  * useRealtimeData
  * @param url SSE 或 WS 的 URL
  * @param protocol 'sse' | 'ws'
+ * @param maxLen 最大保留数据条数
  */
-export function useRealtimeData(url: string, protocol: "sse" | "ws" = "sse") {
+export function useRealtimeData(
+    url: string,
+    protocol: "sse" | "ws" = "sse",
+    maxLen = 60
+) {
     const [data, setData] = useState<ChartData>({
         timestamps: [],
         temperature: [],
@@ -25,7 +30,6 @@ export function useRealtimeData(url: string, protocol: "sse" | "ws" = "sse") {
     });
 
     useEffect(() => {
-        const maxLen = 60; // 保留最近 60 条数据
         let ws: WebSocket | null = null;
         let evtSource: EventSource | null = null;
         let reconnectTimer: ReturnType<typeof setTimeout>;
@@ -80,7 +84,7 @@ export function useRealtimeData(url: string, protocol: "sse" | "ws" = "sse") {
             ws?.close();
             evtSource?.close();
         };
-    }, [url, protocol]);
+    }, [url, protocol, maxLen]);
 
     return data;
 }

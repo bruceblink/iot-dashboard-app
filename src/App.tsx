@@ -6,9 +6,12 @@ function App() {
     const chartRef = useRef<HTMLDivElement | null>(null);
     const chartInstanceRef = useRef<echarts.EChartsType | null>(null);
 
-    // 订阅实时数据
-    const data = useRealtimeData("http://localhost:8765/sse/sensor", "sse");
-    // 如果想用 WebSocket: "ws://localhost:8765/ws/sensor", "ws"
+    // 使用 SSE 或 WS
+    const data = useRealtimeData(
+        "http://localhost:8765/sse/sensor",
+        "sse",
+        60
+    );
 
     // 初始化图表
     useEffect(() => {
@@ -41,7 +44,7 @@ function App() {
     // 数据更新
     useEffect(() => {
         const chart = chartInstanceRef.current;
-        if (!chart || !data.timestamps.length) return;
+        if (!chart || data.timestamps.length === 0) return;
 
         chart.setOption({
             xAxis: { data: data.timestamps },
@@ -65,7 +68,8 @@ function App() {
             <div
                 ref={chartRef}
                 style={{
-                    width: "800px",
+                    width: "100%",
+                    maxWidth: "900px",
                     height: "500px",
                     background: "#fff",
                     borderRadius: "10px",
