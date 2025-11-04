@@ -43,8 +43,8 @@ function App() {
         chart.setOption(option);
     }, [chart, data]);
 
-    // websocket 连接
-    useEffect(() => {
+    // 使用 websocket 连接
+/*    useEffect(() => {
         const ws = new WebSocket("ws://localhost:8765/ws/sensor");
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
@@ -58,6 +58,32 @@ function App() {
             });
         };
         return () => ws.close();
+    }, []);*/
+
+    // 使用http的sse
+    useEffect(() => {
+        // 创建 SSE 连接
+        const evtSource = new EventSource("http://localhost:8765/sse/sensor");
+
+        evtSource.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            setData((prev) => {
+                const maxLen = 60; // 显示最近60条数据
+                return {
+                    timestamps: [...prev.timestamps, msg.timestamp].slice(-maxLen),
+                    temperature: [...prev.temperature, msg.temperature].slice(-maxLen),
+                    humidity: [...prev.humidity, msg.humidity].slice(-maxLen),
+                };
+            });
+        };
+
+        evtSource.onerror = (err) => {
+            console.error("SSE 连接出错", err);
+            evtSource.close();
+        };
+
+        // 卸载组件时关闭连接
+        return () => evtSource.close();
     }, []);
 
     return (
