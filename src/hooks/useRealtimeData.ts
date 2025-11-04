@@ -13,15 +13,17 @@ export interface ChartData {
 }
 
 /**
- * useRealtimeData
- * @param url SSE 或 WS 的 URL
- * @param protocol 'sse' | 'ws'
+ * useRealtimeData Hook
+ * @param url SSE/WS URL
+ * @param protocol "sse" | "ws"
  * @param maxLen 最大保留数据条数
+ * @param historyUrl 可选，获取历史数据的 HTTP 接口
  */
 export function useRealtimeData(
     url: string,
     protocol: "sse" | "ws" = "sse",
-    maxLen = 60
+    maxLen = 60,
+    historyUrl?: string
 ) {
     const [data, setData] = useState<ChartData>({
         timestamps: [],
@@ -30,6 +32,21 @@ export function useRealtimeData(
     });
 
     useEffect(() => {
+        // 1️⃣ 先请求历史数据
+        if (historyUrl) {
+            fetch(historyUrl)
+                .then(res => res.json())
+                .then((history: SensorData[]) => {
+                    setData({
+                        timestamps: history.map(d => d.timestamp).slice(-maxLen),
+                        temperature: history.map(d => d.temperature).slice(-maxLen),
+                        humidity: history.map(d => d.humidity).slice(-maxLen),
+                    });
+                })
+                .catch(err => console.error("获取历史数据失败", err));
+        }
+
+        // 2️⃣ 连接 SSE / WS
         let ws: WebSocket | null = null;
         let evtSource: EventSource | null = null;
         let reconnectTimer: ReturnType<typeof setTimeout>;
@@ -84,7 +101,7 @@ export function useRealtimeData(
             ws?.close();
             evtSource?.close();
         };
-    }, [url, protocol, maxLen]);
+    }, [url, protocol, maxLen, historyUrl]);
 
     return data;
 }

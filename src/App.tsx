@@ -6,11 +6,12 @@ function App() {
     const chartRef = useRef<HTMLDivElement | null>(null);
     const chartInstanceRef = useRef<echarts.EChartsType | null>(null);
 
-    // 使用 SSE 或 WS
+    // 订阅实时数据 + 初始化历史数据
     const data = useRealtimeData(
-        "http://localhost:8765/sse/sensor",
-        "sse",
-        60
+        "http://localhost:8765/sse/sensor",   // 实时 SSE
+        "sse",                                 // 协议
+        60,                                    // 最近 60 条
+        "http://localhost:8765/history/sensor" // 历史数据接口
     );
 
     // 初始化图表
