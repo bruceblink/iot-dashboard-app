@@ -7,7 +7,7 @@
   pnpm install
   pnpm dev
 ```
-use browser open : http://localhost:5173/
+use browser open : http://localhost:7654
 
 you can see follow:
 ![preview](snapshots/preview1.gif)
