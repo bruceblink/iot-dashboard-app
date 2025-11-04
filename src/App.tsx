@@ -44,13 +44,12 @@ function App() {
     }, [chart, data]);
 
     // websocket 连接
-    // WebSocket 连接
     useEffect(() => {
         const ws = new WebSocket("ws://localhost:8765/ws/sensor");
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             setData((prev) => {
-                const maxLen = 30; // 显示最近30条数据
+                const maxLen = 60; // 显示最近30条数据
                 return {
                     timestamps: [...prev.timestamps, msg.timestamp].slice(-maxLen),
                     temperature: [...prev.temperature, msg.temperature].slice(-maxLen),
