@@ -1,99 +1,56 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect } from "react";
 import * as echarts from "echarts";
-
-interface ChartData {
-    timestamps: string[];
-    temperature: number[];
-    humidity: number[];
-}
+import { useRealtimeData } from "./hooks/useRealtimeData";
 
 function App() {
     const chartRef = useRef<HTMLDivElement | null>(null);
-    const [chart, setChart] = useState<echarts.EChartsType | null>(null);
-    const [data, setData] = useState<ChartData>({
-        timestamps: ["t1", "t2", "t3"],
-        temperature: [25, 26, 27],
-        humidity: [50, 52, 54],
-    });
+    const data = useRealtimeData("http://localhost:8765/sse/sensor", "sse"); // 改成 'ws://...' 使用 WebSocket
+    const chartRefInstance = useRef<echarts.EChartsType | null>(null);
 
     // 初始化图表
     useEffect(() => {
         if (!chartRef.current) return;
         const instance = echarts.init(chartRef.current);
-        setChart(instance);
-        return () => instance.dispose();
+        chartRefInstance.current = instance;
+
+        const handleResize = () => instance.resize();
+        window.addEventListener("resize", handleResize);
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            instance.dispose();
+        };
     }, []);
 
     // 更新图表
     useEffect(() => {
+        const chart = chartRefInstance.current;
         if (!chart) return;
 
-        const option: echarts.EChartsOption = {
-            title: { text: "实时温湿度仪表盘" },
-            tooltip: { trigger: "axis" },
-            legend: { data: ["温度", "湿度"] },
-            xAxis: { type: "category", data: data.timestamps },
-            yAxis: { type: "value" },
-            series: [
-                { name: "温度", type: "line", data: data.temperature },
-                { name: "湿度", type: "line", data: data.humidity },
-            ],
-        };
-
-        chart.setOption(option);
-    }, [chart, data]);
-
-    // 使用 websocket 连接
-/*    useEffect(() => {
-        const ws = new WebSocket("ws://localhost:8765/ws/sensor");
-        ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            setData((prev) => {
-                const maxLen = 60; // 显示最近30条数据
-                return {
-                    timestamps: [...prev.timestamps, msg.timestamp].slice(-maxLen),
-                    temperature: [...prev.temperature, msg.temperature].slice(-maxLen),
-                    humidity: [...prev.humidity, msg.humidity].slice(-maxLen),
-                };
-            });
-        };
-        return () => ws.close();
-    }, []);*/
-
-    // 使用http的sse
-    useEffect(() => {
-        // 创建 SSE 连接
-        const evtSource = new EventSource("http://localhost:8765/sse/sensor");
-
-        evtSource.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            setData((prev) => {
-                const maxLen = 60; // 显示最近60条数据
-                return {
-                    timestamps: [...prev.timestamps, msg.timestamp].slice(-maxLen),
-                    temperature: [...prev.temperature, msg.temperature].slice(-maxLen),
-                    humidity: [...prev.humidity, msg.humidity].slice(-maxLen),
-                };
-            });
-        };
-
-        evtSource.onerror = (err) => {
-            console.error("SSE 连接出错", err);
-            evtSource.close();
-        };
-
-        // 卸载组件时关闭连接
-        return () => evtSource.close();
-    }, []);
+        chart.setOption(
+            {
+                title: { text: "实时温湿度仪表盘" },
+                tooltip: { trigger: "axis" },
+                legend: { data: ["温度", "湿度"] },
+                xAxis: { type: "category", data: data.timestamps },
+                yAxis: { type: "value" },
+                series: [
+                    { name: "温度", type: "line", data: data.temperature },
+                    { name: "湿度", type: "line", data: data.humidity },
+                ],
+            },
+            { notMerge: true }
+        );
+    }, [data]);
 
     return (
         <div
             style={{
                 display: "flex",
-                justifyContent: "center", // 水平居中
-                alignItems: "center",     // 垂直居中（可选）
-                height: "100vh",          // 占满整个视口高度
-                background: "#f5f5f5",    // 可选：背景更明显
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                background: "#f5f5f5",
             }}
         >
             <div
