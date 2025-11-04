@@ -22,7 +22,7 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         # 模拟传感器数据
         data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "temperature": round(random.uniform(20, 30), 2),
             "humidity": round(random.uniform(30, 70), 2)
         }
