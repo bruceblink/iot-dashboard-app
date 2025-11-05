@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 
 from starlette.responses import StreamingResponse, JSONResponse
+from collections import deque
 
 app = FastAPI()
 
@@ -21,7 +22,7 @@ app.add_middleware(
 # 全局传感器数据缓存
 # ===============================
 MAX_HISTORY = 60  # 最多保留最近 60 条数据
-history_data = []  # 缓存队列
+history_data = deque(maxlen=MAX_HISTORY)  # 缓存队列
 
 
 def add_sensor_data():
@@ -31,9 +32,7 @@ def add_sensor_data():
         "temperature": round(random.uniform(20, 30), 2),
         "humidity": round(random.uniform(30, 70), 2)
     }
-    history_data.append(data)
-    if len(history_data) > MAX_HISTORY:
-        history_data.pop(0)
+    history_data.append(data) # 自动处理淘汰逻辑，不需要popleft最老的数据
     return data
 
 
@@ -73,7 +72,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/history/sensor")
 async def get_history():
     """返回最近 N 条历史数据"""
-    return JSONResponse(content=history_data)
+    return JSONResponse(content=list(history_data))  # deque无法序列化，所以这里要转成list
 
 
 # ===============================
