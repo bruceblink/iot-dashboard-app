@@ -8,10 +8,10 @@ function App() {
 
     // 订阅实时数据 + 初始化历史数据
     const data = useRealtimeData(
-        "http://localhost:8765/sse/sensor",   // 实时 SSE
+        `${import.meta.env.VITE_API_URL}/sse/sensor`,   // 实时 SSE
         "sse",                                 // 协议
         60,                                    // 最近 60 条
-        "http://localhost:8765/history/sensor" // 历史数据接口
+        `${import.meta.env.VITE_API_URL}/history/sensor` // 历史数据接口
     );
 
     // 初始化图表
