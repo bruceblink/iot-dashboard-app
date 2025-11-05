@@ -69,7 +69,7 @@ async def websocket_endpoint(websocket: WebSocket):
 # ===============================
 # 3️⃣ 历史数据接口
 # ===============================
-@app.get("/history/sensor")
+@app.get("/sensor/history")
 async def get_history():
     """返回最近 N 条历史数据"""
     return JSONResponse(content=list(history_data))  # deque无法序列化，所以这里要转成list

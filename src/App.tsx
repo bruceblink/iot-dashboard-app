@@ -11,7 +11,7 @@ function App() {
         `${import.meta.env.VITE_API_URL}/sse/sensor`,   // 实时 SSE
         "sse",                                 // 协议
         60,                                    // 最近 60 条
-        `${import.meta.env.VITE_API_URL}/history/sensor` // 历史数据接口
+        `${import.meta.env.VITE_API_URL}/sensor/history` // 历史数据接口
     );
 
     // 初始化图表
