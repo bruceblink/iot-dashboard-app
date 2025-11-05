@@ -4,6 +4,7 @@
 
  frontend
 ```bash
+  cp .example.env .env  # 使用.env的配置文件 
   pnpm install
   pnpm dev
 ```
